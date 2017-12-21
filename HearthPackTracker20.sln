@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.26430.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HearthPackTracker20", "HearthPackTracker20\HearthPackTracker20.csproj", "{17695F6E-F8C9-404B-97E7-489E878C17EE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HearthPackTests", "HearthPackTests\HearthPackTests.csproj", "{8D2A354E-A64D-4F07-BE5C-2268C64B2163}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HearthPackTests", "HearthPackTests\HearthPackTests.csproj", "{751AFC65-090F-43F3-ADFA-BFCF270F5A37}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{17695F6E-F8C9-404B-97E7-489E878C17EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{17695F6E-F8C9-404B-97E7-489E878C17EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{17695F6E-F8C9-404B-97E7-489E878C17EE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8D2A354E-A64D-4F07-BE5C-2268C64B2163}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8D2A354E-A64D-4F07-BE5C-2268C64B2163}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8D2A354E-A64D-4F07-BE5C-2268C64B2163}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8D2A354E-A64D-4F07-BE5C-2268C64B2163}.Release|Any CPU.Build.0 = Release|Any CPU
+		{751AFC65-090F-43F3-ADFA-BFCF270F5A37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{751AFC65-090F-43F3-ADFA-BFCF270F5A37}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{751AFC65-090F-43F3-ADFA-BFCF270F5A37}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{751AFC65-090F-43F3-ADFA-BFCF270F5A37}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

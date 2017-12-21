@@ -48,7 +48,7 @@ namespace HearthPackTracker20
                     log.LogLine($"Default LaunchRequest made");
                     var output = new PlainTextOutputSpeech()
                     {
-                        Text = "Welcome to Open Market. " +
+                        Text = "Welcome to the Dev Version of Hearthstone Pack Tracker. " +
                                "For instructions, please say Help or How does this work. "
                     };
 
@@ -70,15 +70,16 @@ namespace HearthPackTracker20
                     {
                         Text = "Please include pack type and legendary amount in your request"
                     };
+
                     returnResponse = ResponseBuilder.Tell(output);
-
                     var reprompt = new Reprompt();
-
-
                     var slots = intentRequest.Intent.Slots;
+                    var packCounter = 0;
+                    var packType = string.Empty;
+                    var legendaryCount = 0;
+
                     switch (intentRequest.Intent.Name)
                     {
-                        #region Help
                         case "AMAZON.HelpIntent":
                             output = new PlainTextOutputSpeech()
                             {
@@ -86,9 +87,24 @@ namespace HearthPackTracker20
                             };
 
                             returnResponse = ResponseBuilder.Ask(output, reprompt);
+                            returnResponse = this.GetHelpResponse();
                             break;
-                            #endregion
-
+                        case "CurrentCount":
+                            returnResponse = this.GetCurrentCountResponse();
+                            break;
+                        case "Multipack":
+                            packCounter = Convert.ToInt32(intentRequest.Intent.Slots["PackCounter"].Value);
+                            packType = intentRequest.Intent.Slots["Packtype"].Value;
+                            returnResponse = this.GetPackOpenedResponse(packCounter, packType);
+                            break;
+                        case "PackOpened":
+                            packType = intentRequest.Intent.Slots["Packtype"].Value;
+                            legendaryCount = Convert.ToInt32(intentRequest.Intent.Slots["LegendCount"].Value);
+                            returnResponse = this.GetPackOpenedResponse(1, packType);
+                            break;
+                        case "PackTypes":
+                            returnResponse = this.GetPackTypesReponse();
+                            break;
                     }
                 }
                 else
@@ -121,6 +137,50 @@ namespace HearthPackTracker20
 
                 return returnResponse;
             }
+        }
+
+        private SkillResponse GetPackTypesReponse()
+        {
+            var speech = new Alexa.NET.Response.PlainTextOutputSpeech()
+            {
+                Text = "Pack Types"
+            };
+
+            var finalResponse = ResponseBuilder.Tell(speech);
+            return finalResponse;
+        }
+
+        private SkillResponse GetHelpResponse()
+        {
+            var speech = new Alexa.NET.Response.PlainTextOutputSpeech()
+            {
+                Text = "Help"
+            };
+
+            var finalResponse = ResponseBuilder.Tell(speech);
+            return finalResponse;
+        }
+
+        private SkillResponse GetCurrentCountResponse()
+        {
+            var speech = new Alexa.NET.Response.PlainTextOutputSpeech()
+            {
+                Text = "Current Count"
+            };
+
+            var finalResponse = ResponseBuilder.Tell(speech);
+            return finalResponse;
+        }
+
+        private SkillResponse GetPackOpenedResponse(int packCounter, string packType, int legendaryCount = 0)
+        {
+            var speech = new Alexa.NET.Response.PlainTextOutputSpeech()
+            {
+                Text = String.Format("Pack Opened. {0}, {1}, {2}.", packCounter, packType, legendaryCount)
+            };
+
+            var finalResponse = ResponseBuilder.Tell(speech);
+            return finalResponse;
         }
     }
 }

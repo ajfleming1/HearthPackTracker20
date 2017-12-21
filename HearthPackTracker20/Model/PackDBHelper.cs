@@ -17,8 +17,8 @@ namespace HearthPackTracker20.Model
         private string accessKey = Properties.Resources.accessKey;
         private string secretKey = Properties.Resources.secretKey;
 
-        private static string dynamoDBTableName = "Markets";
-        private static string hashKey = "MarketId";
+        private static string dynamoDBTableName = Properties.Resources.dynamoDBTableName;
+        private static string hashKey = Properties.Resources.hashKey;
 
         private AmazonDynamoDBClient client { get; set; }
         private DynamoDBContext context { get; set; }
@@ -92,10 +92,10 @@ namespace HearthPackTracker20.Model
             await context.SaveAsync<Pack>(pack);
         }
 
-        public async Task<Pack> GetMarket(string marketId)
+        public async Task<Pack> GetPacks(string userId)
         {
             List<ScanCondition> conditions = new List<ScanCondition>();
-            conditions.Add(new ScanCondition("MarketId", ScanOperator.Equal, marketId));
+            conditions.Add(new ScanCondition(Properties.Resources.hashKey, ScanOperator.Equal, userId));
             var allDocs = await context.ScanAsync<Pack>(conditions).GetRemainingAsync();
 
             return allDocs[0];
