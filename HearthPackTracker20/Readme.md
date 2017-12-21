@@ -1,4 +1,4 @@
-#Hearthstone Pack Tracker
+## Hearthstone Pack Tracker
 
 It's been well documented that after opening 39 Hearthstone card packs of the same set without a Legendary card, the 40th pack will be guaranteed to have one. This is an Alexa skill that allows a user to tell Alexa when he or she has opened a pack. These counts are incremented and stored on DynamoDB so the user can see how close they are getting to a legendary card.
 
