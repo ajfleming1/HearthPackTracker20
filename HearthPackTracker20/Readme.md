@@ -1,13 +1,6 @@
-# AWS Lambda Empty Function Project
+#Hearthstone Pack Tracker
 
-This starter project consists of:
-* Function.cs - class file containing a class with a single function handler method
-* aws-lambda-tools-defaults.json - default argument settings for use with Visual Studio and command line deployment tools for AWS
-* project.json - .NET Core project file with build and tool declarations for the Amazon.Lambda.Tools Nuget package
-
-You may also have a test project depending on the options selected.
-
-The generated function handler is a simple method accepting a string argument that returns the uppercase equivalent of the input string. Replace the body of this method, and parameters, to suit your needs. 
+It's been well documented that after opening 39 Hearthstone card packs of the same set without a Legendary card, the 40th pack will be guaranteed to have one. This is an Alexa skill that allows a user to tell Alexa when he or she has opened a pack. These counts are incremented and stored on DynamoDB so the user can see how close they are getting to a legendary card.
 
 ## Here are some steps to follow from Visual Studio:
 

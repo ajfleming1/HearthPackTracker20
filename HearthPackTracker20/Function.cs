@@ -6,6 +6,7 @@ using Alexa.NET.Request.Type;
 using Alexa.NET.Response;
 using Amazon.Lambda.Core;
 using HearthPackTracker20.Model;
+using Models;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
@@ -14,25 +15,37 @@ namespace HearthPackTracker20
 {
     public class Function
     {
+        /// <summary>
+        /// User id for the person using the skill
+        /// </summary>
+        private string userId;
+        
+        /// <summary>
+        /// Handles getting and setting a user's row in dynamodb
+        /// </summary>
+        private PackDBHelper hearthDBHelper = new PackDBHelper();
 
         /// <summary>
-        /// A simple function that takes a string and does a ToUpper
+        /// Our Logger
         /// </summary>
-        /// <param name="input"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
+        ILambdaLogger log;
+
+        /// <summary>
+        /// Entry point for the Alexa skill. Handles all the intents and calls worker methods
+        /// </summary>
+        /// <param name="input">Contains user id and request type</param>
+        /// <param name="context">Allows use of the logger to CloudWatch</param>
+        /// <returns>Spoken phrase to let the user know what happened</returns>
         public async Task<SkillResponse> FunctionHandler(SkillRequest input, ILambdaContext context)
         {
             try
             {
-                var log = context.Logger;
+                log = context.Logger;
                 SkillResponse returnResponse = new SkillResponse();
                 returnResponse.Response = new ResponseBody();
 
                 // Get a db connection
-                var hearthDBHelper = new PackDBHelper();
                 await hearthDBHelper.VerifyTable();
-                string userId = "";
                 if (input.Session != null)
                 {
                     userId = input.Session.User.UserId;
@@ -41,8 +54,7 @@ namespace HearthPackTracker20
                 {
                     userId = "unknownUserDump";
                 }
-
-                // log.LogLine("User Id: " + input.Session.User.UserId);
+                
                 if (input.GetRequestType() == typeof(LaunchRequest))
                 {
                     log.LogLine($"Default LaunchRequest made");
@@ -81,35 +93,36 @@ namespace HearthPackTracker20
                     switch (intentRequest.Intent.Name)
                     {
                         case "AMAZON.HelpIntent":
-                            output = new PlainTextOutputSpeech()
-                            {
-                                Text = "Drew, you are here."
-                            };
-
-                            returnResponse = ResponseBuilder.Ask(output, reprompt);
                             returnResponse = this.GetHelpResponse();
                             break;
                         case "CurrentCount":
-                            returnResponse = this.GetCurrentCountResponse();
+                            returnResponse = await this.GetCurrentCountResponse();
                             break;
-                        case "Multipack":
+                        case "MultiPack":
                             packCounter = Convert.ToInt32(intentRequest.Intent.Slots["PackCounter"].Value);
                             packType = intentRequest.Intent.Slots["Packtype"].Value;
-                            returnResponse = this.GetPackOpenedResponse(packCounter, packType);
+                            returnResponse = await this.GetPackOpenedResponse(packCounter, packType);
                             break;
                         case "PackOpened":
                             packType = intentRequest.Intent.Slots["Packtype"].Value;
                             legendaryCount = Convert.ToInt32(intentRequest.Intent.Slots["LegendCount"].Value);
-                            returnResponse = this.GetPackOpenedResponse(1, packType);
+                            returnResponse = await this.GetPackOpenedResponse(1, packType, legendaryCount);
                             break;
                         case "PackTypes":
                             returnResponse = this.GetPackTypesReponse();
+                            break;
+                        default:
+                            var defaultOutput = new PlainTextOutputSpeech()
+                            {
+                                Text = "Sorry, I didn't understand what you said."
+                            };
+
+                            returnResponse = ResponseBuilder.Tell(defaultOutput);
                             break;
                     }
                 }
                 else
                 {
-                    // returnResponse.Response.ShouldEndSession = false;
                     var output = new PlainTextOutputSpeech()
                     {
                         Text = "Sorry, I didn't understand what you said."
@@ -124,63 +137,241 @@ namespace HearthPackTracker20
             {
                 var logg = context.Logger;
                 logg.LogLine("Exception caught: " + e + " - " + e.InnerException);
-                SkillResponse returnResponse = new SkillResponse();
-                returnResponse.Response = new ResponseBody();
-
                 var output = new PlainTextOutputSpeech()
                 {
-                    Text = "Unable to complete request. Have you enabled zip code permissions in your Alexa App?."
+                    Text = "Unable to complete request at this time."
                 };
 
-                returnResponse = ResponseBuilder.Tell(output);
-                // returnResponse.Response.ShouldEndSession = false;
-
-                return returnResponse;
+                return ResponseBuilder.Tell(output);
             }
         }
 
+        /// <summary>
+        /// Gives a response of all the valid pack types
+        /// </summary>
+        /// <returns>All the valid pack types as a spoken response</returns>
         private SkillResponse GetPackTypesReponse()
         {
             var speech = new Alexa.NET.Response.PlainTextOutputSpeech()
             {
-                Text = "Pack Types"
+                Text = "The pack types are Kobolds and Catacombs, Knights of the Frozen Throne, Journey to Un'goro, " +
+                       "Mean Streets of Gadgetzan, Whispers of the Old Gods, The Grand Tournament, Goblins Versus Gnomes and the Classic Set."
             };
-
-            var finalResponse = ResponseBuilder.Tell(speech);
-            return finalResponse;
+            
+            return ResponseBuilder.Tell(speech);
         }
 
+        /// <summary>
+        /// Gievs help to the user with some sample phrases
+        /// </summary>
+        /// <returns>Sample phrases as a spoken response</returns>
         private SkillResponse GetHelpResponse()
         {
             var speech = new Alexa.NET.Response.PlainTextOutputSpeech()
             {
-                Text = "Help"
+                Text = "You can say 'I opened X packs of Pack Type' or " +
+                       "'I opened a pack of Pack type and got X legendary cards'."
             };
-
-            var finalResponse = ResponseBuilder.Tell(speech);
-            return finalResponse;
+            
+            return ResponseBuilder.Tell(speech);
         }
 
-        private SkillResponse GetCurrentCountResponse()
+        /// <summary>
+        /// Processes the intent of Current Count
+        /// </summary>
+        /// <returns>A response of the pack type with the most packs purchaced without a legendary</returns>
+        private async Task<SkillResponse> GetCurrentCountResponse()
         {
+            var user = await hearthDBHelper.GetPacks(userId);
+            var maxCount = 0;
+            var maxPackType = string.Empty;
+            if(maxCount < user.Pack.ClassicCount)
+            {
+                maxCount = user.Pack.ClassicCount;
+                maxPackType = "Classic";
+            }
+
+            if (maxCount < user.Pack.FrozenThroneCount)
+            {
+                maxCount = user.Pack.FrozenThroneCount;
+                maxPackType = "Frozen Throne";
+            }
+
+            if (maxCount < user.Pack.GadgetzanCount)
+            {
+                maxCount = user.Pack.GadgetzanCount;
+                maxPackType = "Gadgetzan";
+            }
+
+            if (maxCount < user.Pack.GVGCount)
+            {
+                maxCount = user.Pack.GVGCount;
+                maxPackType = "Goblins Versus Gnomes";
+            }
+
+            if (maxCount < user.Pack.KoboldsCount)
+            {
+                maxCount = user.Pack.KoboldsCount;
+                maxPackType = "Kobolds and Catacombs";
+            }
+
+            if (maxCount < user.Pack.OldGodsCount)
+            {
+                maxCount = user.Pack.OldGodsCount;
+                maxPackType = "Whispers of the Old Gods";
+            }
+
+            if (maxCount < user.Pack.TGTCount)
+            {
+                maxCount = user.Pack.TGTCount;
+                maxPackType = "The Grand Tourament";
+            }
+
+            if (maxCount < user.Pack.UnGoroCount)
+            {
+                maxCount = user.Pack.UnGoroCount;
+                maxPackType = "Journey to Un'Goro";
+            }
+
             var speech = new Alexa.NET.Response.PlainTextOutputSpeech()
             {
-                Text = "Current Count"
+                Text = string.Format("You are closest to a legendary in the {0} set with at most {1} packs remaining.", maxPackType, 40 - maxCount)
             };
 
-            var finalResponse = ResponseBuilder.Tell(speech);
-            return finalResponse;
+            return ResponseBuilder.Tell(speech);
         }
 
-        private SkillResponse GetPackOpenedResponse(int packCounter, string packType, int legendaryCount = 0)
+        /// <summary>
+        /// Handles the event and generates a response when a pack opened intent is received
+        /// </summary>
+        /// <param name="packCounter">Number of packs opened</param>
+        /// <param name="packType">The set of the packs that were opened</param>
+        /// <param name="legendaryCount">Number of legendary cards in the opened packs</param>
+        /// <returns>Reponse acknowledging the pack openings</returns>
+        private async Task<SkillResponse> GetPackOpenedResponse(int packCounter, string packType, int legendaryCount = 0)
         {
-            var speech = new Alexa.NET.Response.PlainTextOutputSpeech()
+            var user = await hearthDBHelper.GetPacks(userId);
+            if(legendaryCount > 0)
             {
-                Text = String.Format("Pack Opened. {0}, {1}, {2}.", packCounter, packType, legendaryCount)
-            };
+                this.ResetPackCount(user, packType);
+                var speech = new Alexa.NET.Response.PlainTextOutputSpeech()
+                {
+                    Text = string.Format("Good Job Opening a Legendary Card.")
+                };
 
-            var finalResponse = ResponseBuilder.Tell(speech);
-            return finalResponse;
+                var finalResponse = ResponseBuilder.Tell(speech);
+                return finalResponse;
+            }
+            else
+            {
+                this.IncrementPackCount(packCounter, user, packType);
+                return await this.GetCurrentCountResponse();
+            }
+        }
+
+        /// <summary>
+        /// Increments the pack type for user by the pack counter
+        /// </summary>
+        /// <param name="packCounter">Number of packs opened</param>
+        /// <param name="user">User's model object</param>
+        /// <param name="packType">Pack that was opened</param>
+        private void IncrementPackCount(int packCounter, Packs user, string packType)
+        {
+            var packs = user.Pack;
+            if (PackTypeSynonyms.Classic.Contains(packType.ToLower()))
+            {
+                packs.ClassicCount += packCounter;
+            }
+
+            if (PackTypeSynonyms.Kobolds.Contains(packType.ToLower()))
+            {
+                packs.KoboldsCount += packCounter;
+            }
+
+            if (PackTypeSynonyms.UnGoro.Contains(packType.ToLower()))
+            {
+                packs.UnGoroCount += packCounter;
+            }
+
+            if (PackTypeSynonyms.GVG.Contains(packType.ToLower()))
+            {
+                packs.GVGCount += packCounter;
+            }
+
+            if (PackTypeSynonyms.Gadgetzan.Contains(packType.ToLower()))
+            {
+                packs.GadgetzanCount += packCounter;
+            }
+
+            if (PackTypeSynonyms.FrozenThrone.Contains(packType.ToLower()))
+            {
+                packs.FrozenThroneCount += packCounter;
+            }
+
+            if (PackTypeSynonyms.OldGods.Contains(packType.ToLower()))
+            {
+                packs.OldGodsCount += packCounter;
+            }
+
+            if (PackTypeSynonyms.TGT.Contains(packType.ToLower()))
+            {
+                packs.TGTCount += packCounter;
+            }
+
+            Task t = hearthDBHelper.SavePack(user);
+            t.Wait();
+        }
+
+        /// <summary>
+        /// Resets the packType counter to 0
+        /// </summary>
+        /// <param name="user">User's model object</param>
+        /// <param name="packType">Set that was opened</param>
+        private void ResetPackCount(Packs user, string packType)
+        {
+            var packs = user.Pack;
+            if (PackTypeSynonyms.Classic.Contains(packType.ToLower()))
+            {
+                packs.ClassicCount = 0;
+            }
+
+            if (PackTypeSynonyms.Kobolds.Contains(packType.ToLower()))
+            {
+                packs.KoboldsCount = 0;
+            }
+
+            if (PackTypeSynonyms.UnGoro.Contains(packType.ToLower()))
+            {
+                packs.UnGoroCount = 0;
+            }
+
+            if (PackTypeSynonyms.GVG.Contains(packType.ToLower()))
+            {
+                packs.GVGCount = 0;
+            }
+
+            if (PackTypeSynonyms.Gadgetzan.Contains(packType.ToLower()))
+            {
+                packs.GadgetzanCount = 0;
+            }
+
+            if (PackTypeSynonyms.FrozenThrone.Contains(packType.ToLower()))
+            {
+                packs.FrozenThroneCount = 0;
+            }
+
+            if (PackTypeSynonyms.OldGods.Contains(packType.ToLower()))
+            {
+                packs.OldGodsCount = 0;
+            }
+
+            if (PackTypeSynonyms.TGT.Contains(packType.ToLower()))
+            {
+                packs.TGTCount = 0;
+            }
+
+            Task t = hearthDBHelper.SavePack(user);
+            t.Wait();
         }
     }
 }
