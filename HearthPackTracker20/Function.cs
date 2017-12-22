@@ -25,6 +25,11 @@ namespace HearthPackTracker20
         /// </summary>
         ILambdaLogger log;
 
+        /// <summary>
+        /// The maximum packs that a user can open without a legendary card is 39. 
+        /// This field is used to calculate the max amount of remaining packs a user
+        /// will have to open before they get a legendary card
+        /// </summary>
         private readonly int MAX_PACKS = 40;
 
         /// <summary>
