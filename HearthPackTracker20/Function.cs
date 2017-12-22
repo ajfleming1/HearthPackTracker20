@@ -25,6 +25,8 @@ namespace HearthPackTracker20
         /// </summary>
         ILambdaLogger log;
 
+        private readonly int MAX_PACKS = 40;
+
         /// <summary>
         /// Entry point for the Alexa skill. Handles all the intents and calls worker methods
         /// </summary>
@@ -246,9 +248,10 @@ namespace HearthPackTracker20
                 maxPackType = "Journey to Un'Goro";
             }
 
+            maxCount = (MAX_PACKS - maxCount) < 0 ? 1 : (MAX_PACKS - maxCount);
             var speech = new Alexa.NET.Response.PlainTextOutputSpeech()
             {
-                Text = string.Format("You are closest to a legendary in the {0} set with at most {1} packs remaining.", maxPackType, 40 - maxCount)
+                Text = string.Format("You are closest to a legendary in the {0} set with at most {1} packs remaining.", maxPackType, maxCount)
             };
 
             return ResponseBuilder.Tell(speech);
