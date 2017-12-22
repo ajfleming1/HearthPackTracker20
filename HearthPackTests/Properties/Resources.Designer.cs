@@ -69,5 +69,14 @@ namespace HearthPackTests.Properties {
                 return ResourceManager.GetString("TestAcct", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to catacombs.
+        /// </summary>
+        internal static string TestPackType {
+            get {
+                return ResourceManager.GetString("TestPackType", resourceCulture);
+            }
+        }
     }
 }

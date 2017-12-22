@@ -1,5 +1,7 @@
 using System;
 using System.Threading.Tasks;
+using Alexa.NET.Response;
+using HearthPackTracker20;
 using HearthPackTracker20.Model;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Models;
@@ -40,6 +42,40 @@ namespace HearthPackTests
             Task saved = packDBHelper.SavePack(userPacks);
             saved.Wait();
             Assert.IsNull(saved.Exception);
+        }
+
+        [TestMethod]
+        public void TestGetPackOpenedResponse()
+        {
+            var function = new Function();
+            Task<SkillResponse> t = function.GetPackOpenedResponse(Properties.Resources.TestAcct, 10, Properties.Resources.TestPackType, 0);
+            t.Wait();
+            Assert.IsNull(t.Exception);
+        }
+
+        [TestMethod]
+        public void TestGetCurrentCountResponse()
+        {
+            var function = new Function();
+            Task<SkillResponse> t = function.GetCurrentCountResponse(Properties.Resources.TestAcct);
+            t.Wait();
+            Assert.IsNull(t.Exception);
+        }
+
+        [TestMethod]
+        public void TestGetHelpResponse()
+        {
+            var function = new Function();
+            SkillResponse t = function.GetHelpResponse();
+            Assert.IsNotNull(t);
+        }
+
+        [TestMethod]
+        public void TestGetPackTypesReponse()
+        {
+            var function = new Function();
+            SkillResponse t = function.GetPackTypesReponse();
+            Assert.IsNotNull(t);
         }
     }
 }

@@ -14,12 +14,7 @@ using Models;
 namespace HearthPackTracker20
 {
     public class Function
-    {
-        /// <summary>
-        /// User id for the person using the skill
-        /// </summary>
-        private string userId;
-        
+    {        
         /// <summary>
         /// Handles getting and setting a user's row in dynamodb
         /// </summary>
@@ -38,6 +33,7 @@ namespace HearthPackTracker20
         /// <returns>Spoken phrase to let the user know what happened</returns>
         public async Task<SkillResponse> FunctionHandler(SkillRequest input, ILambdaContext context)
         {
+            var userId = string.Empty;
             try
             {
                 log = context.Logger;
@@ -61,14 +57,14 @@ namespace HearthPackTracker20
                     var output = new PlainTextOutputSpeech()
                     {
                         Text = "Welcome to the Dev Version of Hearthstone Pack Tracker. " +
-                               "For instructions, please say Help or How does this work. "
+                               "For instructions, please say Help or How does this work."
                     };
 
                     var reprompt = new Reprompt()
                     {
                         OutputSpeech = new PlainTextOutputSpeech()
                         {
-                            Text = "Drew, Please add text here at some point."
+                            Text = "For instructions, please say Help or How does this work."
                         }
                     };
 
@@ -96,17 +92,17 @@ namespace HearthPackTracker20
                             returnResponse = this.GetHelpResponse();
                             break;
                         case "CurrentCount":
-                            returnResponse = await this.GetCurrentCountResponse();
+                            returnResponse = await this.GetCurrentCountResponse(userId);
                             break;
                         case "MultiPack":
                             packCounter = Convert.ToInt32(intentRequest.Intent.Slots["PackCounter"].Value);
                             packType = intentRequest.Intent.Slots["Packtype"].Value;
-                            returnResponse = await this.GetPackOpenedResponse(packCounter, packType);
+                            returnResponse = await this.GetPackOpenedResponse(userId, packCounter, packType);
                             break;
                         case "PackOpened":
                             packType = intentRequest.Intent.Slots["Packtype"].Value;
                             legendaryCount = Convert.ToInt32(intentRequest.Intent.Slots["LegendCount"].Value);
-                            returnResponse = await this.GetPackOpenedResponse(1, packType, legendaryCount);
+                            returnResponse = await this.GetPackOpenedResponse(userId, 1, packType, legendaryCount);
                             break;
                         case "PackTypes":
                             returnResponse = this.GetPackTypesReponse();
@@ -135,8 +131,7 @@ namespace HearthPackTracker20
             }
             catch (Exception e)
             {
-                var logg = context.Logger;
-                logg.LogLine("Exception caught: " + e + " - " + e.InnerException);
+                log.LogLine("Exception caught: " + e + " - " + e.InnerException);
                 var output = new PlainTextOutputSpeech()
                 {
                     Text = "Unable to complete request at this time."
@@ -150,37 +145,55 @@ namespace HearthPackTracker20
         /// Gives a response of all the valid pack types
         /// </summary>
         /// <returns>All the valid pack types as a spoken response</returns>
-        private SkillResponse GetPackTypesReponse()
+        public SkillResponse GetPackTypesReponse()
         {
             var speech = new Alexa.NET.Response.PlainTextOutputSpeech()
             {
                 Text = "The pack types are Kobolds and Catacombs, Knights of the Frozen Throne, Journey to Un'goro, " +
                        "Mean Streets of Gadgetzan, Whispers of the Old Gods, The Grand Tournament, Goblins Versus Gnomes and the Classic Set."
             };
-            
-            return ResponseBuilder.Tell(speech);
+
+            var reprompt = new Reprompt()
+            {
+                OutputSpeech = new PlainTextOutputSpeech()
+                {
+                    Text = "You can now say 'I opened X packs of Pack Type'."
+                }
+            };
+
+            return ResponseBuilder.Ask(speech, reprompt);
         }
 
         /// <summary>
         /// Gievs help to the user with some sample phrases
         /// </summary>
         /// <returns>Sample phrases as a spoken response</returns>
-        private SkillResponse GetHelpResponse()
+        public SkillResponse GetHelpResponse()
         {
             var speech = new Alexa.NET.Response.PlainTextOutputSpeech()
             {
-                Text = "You can say 'I opened X packs of Pack Type' or " +
-                       "'I opened a pack of Pack type and got X legendary cards'."
+                Text = "This is a skill to track the number of packs you open in the digital card game Hearthstone. " +
+                       "You can say 'I opened X packs of Pack Type' or " +
+                       "'I opened a pack of Pack type and got X legendary cards'. For a list of valid pack types say " +
+                       "'What are the valid pack types'."
             };
-            
-            return ResponseBuilder.Tell(speech);
+
+            var reprompt = new Reprompt()
+            {
+                OutputSpeech = new PlainTextOutputSpeech()
+                {
+                    Text = "Say 'I opened X packs of Pack Type'."
+                }
+            };
+
+            return ResponseBuilder.Ask(speech, reprompt);
         }
 
         /// <summary>
         /// Processes the intent of Current Count
         /// </summary>
         /// <returns>A response of the pack type with the most packs purchaced without a legendary</returns>
-        private async Task<SkillResponse> GetCurrentCountResponse()
+        public async Task<SkillResponse> GetCurrentCountResponse(string userId)
         {
             var user = await hearthDBHelper.GetPacks(userId);
             var maxCount = 0;
@@ -248,7 +261,7 @@ namespace HearthPackTracker20
         /// <param name="packType">The set of the packs that were opened</param>
         /// <param name="legendaryCount">Number of legendary cards in the opened packs</param>
         /// <returns>Reponse acknowledging the pack openings</returns>
-        private async Task<SkillResponse> GetPackOpenedResponse(int packCounter, string packType, int legendaryCount = 0)
+        public async Task<SkillResponse> GetPackOpenedResponse(string userId, int packCounter, string packType, int legendaryCount = 0)
         {
             var user = await hearthDBHelper.GetPacks(userId);
             if(legendaryCount > 0)
@@ -265,7 +278,7 @@ namespace HearthPackTracker20
             else
             {
                 this.IncrementPackCount(packCounter, user, packType);
-                return await this.GetCurrentCountResponse();
+                return await this.GetCurrentCountResponse(userId);
             }
         }
 

@@ -120,4 +120,7 @@
   <data name="TestAcct" xml:space="preserve">
     <value>Drew</value>
   </data>
+  <data name="TestPackType" xml:space="preserve">
+    <value>catacombs</value>
+  </data>
 </root>
