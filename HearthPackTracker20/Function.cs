@@ -267,19 +267,13 @@ namespace HearthPackTracker20
             if(legendaryCount > 0)
             {
                 this.ResetPackCount(user, packType);
-                var speech = new Alexa.NET.Response.PlainTextOutputSpeech()
-                {
-                    Text = string.Format("Good Job Opening a Legendary Card.")
-                };
-
-                var finalResponse = ResponseBuilder.Tell(speech);
-                return finalResponse;
             }
             else
             {
                 this.IncrementPackCount(packCounter, user, packType);
-                return await this.GetCurrentCountResponse(userId);
             }
+
+            return await this.GetCurrentCountResponse(userId);
         }
 
         /// <summary>

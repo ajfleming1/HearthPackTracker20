@@ -48,7 +48,16 @@ namespace HearthPackTests
         public void TestGetPackOpenedResponse()
         {
             var function = new Function();
-            Task<SkillResponse> t = function.GetPackOpenedResponse(Properties.Resources.TestAcct, 10, Properties.Resources.TestPackType, 0);
+            Task<SkillResponse> t = function.GetPackOpenedResponse(Properties.Resources.TestAcct, 10, Properties.Resources.TestPackType);
+            t.Wait();
+            Assert.IsNull(t.Exception);
+        }
+
+        [TestMethod]
+        public void TestLegendaryOpenedResponse()
+        {
+            var function = new Function();
+            Task<SkillResponse> t = function.GetPackOpenedResponse(Properties.Resources.TestAcct, 10, Properties.Resources.TestPackType, 1);
             t.Wait();
             Assert.IsNull(t.Exception);
         }
