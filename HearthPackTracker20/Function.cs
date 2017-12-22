@@ -56,15 +56,15 @@ namespace HearthPackTracker20
                     log.LogLine($"Default LaunchRequest made");
                     var output = new PlainTextOutputSpeech()
                     {
-                        Text = "Welcome to the Dev Version of Hearthstone Pack Tracker. " +
-                               "For instructions, please say Help or How does this work."
+                        Text = "Welcome to Hearthstone Pack Tracker. " +
+                               "For instructions, please say 'Help' or 'How Does This Work.'"
                     };
 
                     var reprompt = new Reprompt()
                     {
                         OutputSpeech = new PlainTextOutputSpeech()
                         {
-                            Text = "For instructions, please say Help or How does this work."
+                            Text = "For instructions, please say 'Help' or 'How Does This Work'."
                         }
                     };
 
