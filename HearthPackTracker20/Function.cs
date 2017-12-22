@@ -197,7 +197,7 @@ namespace HearthPackTracker20
         {
             var user = await hearthDBHelper.GetPacks(userId);
             var maxCount = 0;
-            var maxPackType = string.Empty;
+            var maxPackType = "Classic";
             if(maxCount < user.Pack.ClassicCount)
             {
                 maxCount = user.Pack.ClassicCount;
