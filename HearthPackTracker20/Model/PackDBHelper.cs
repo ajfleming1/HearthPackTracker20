@@ -147,6 +147,7 @@ namespace HearthPackTracker20.Model
                 Pack = new PackMap()
                 {
                     ClassicCount = 0,
+                    WitchwoodCount = 0,
                     FrozenThroneCount = 0,
                     GadgetzanCount = 0,
                     GVGCount = 0,

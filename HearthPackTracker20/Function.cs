@@ -211,6 +211,12 @@ namespace HearthPackTracker20
                 maxPackType = "Classic";
             }
 
+            if (maxCount < user.Pack.WitchwoodCount)
+            {
+                maxCount = user.Pack.WitchwoodCount;
+                maxPackType = "Witch wood";
+            }
+
             if (maxCount < user.Pack.FrozenThroneCount)
             {
                 maxCount = user.Pack.FrozenThroneCount;
@@ -298,6 +304,11 @@ namespace HearthPackTracker20
                 packs.ClassicCount += packCounter;
             }
 
+            if (PackTypeSynonyms.Witchwood.Contains(packType.ToLower()))
+            {
+                packs.WitchwoodCount += packCounter;
+            }
+
             if (PackTypeSynonyms.Kobolds.Contains(packType.ToLower()))
             {
                 packs.KoboldsCount += packCounter;
@@ -358,6 +369,11 @@ namespace HearthPackTracker20
             if (PackTypeSynonyms.UnGoro.Contains(packType.ToLower()))
             {
                 packs.UnGoroCount = 0;
+            }
+
+            if (PackTypeSynonyms.Witchwood.Contains(packType.ToLower()))
+            {
+                packs.WitchwoodCount = 0;
             }
 
             if (PackTypeSynonyms.GVG.Contains(packType.ToLower()))

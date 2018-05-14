@@ -14,6 +14,7 @@ namespace Models
     public class PackMap
     {
         public int ClassicCount { get; set; }
+        public int WitchwoodCount { get; set; }
         public int KoboldsCount { get; set; }
         public int FrozenThroneCount { get; set; }
         public int GadgetzanCount { get; set; }
@@ -33,6 +34,15 @@ namespace Models
             "catacombs",
             "kobolds",
             "kobolds and catacombs"
+        };
+
+        public static List<string> Witchwood = new List<string>
+        {
+            "witchwood",
+            "witch wood",
+            "which wood",
+            "witch",
+            "wood"
         };
 
         public static List<string> UnGoro = new List<string>
