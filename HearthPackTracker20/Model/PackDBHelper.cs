@@ -14,22 +14,22 @@ namespace HearthPackTracker20.Model
 {
     public class PackDBHelper
     {
-        private string accessKey = Properties.Resources.accessKey;
-        private string secretKey = Properties.Resources.secretKey;
+        private readonly string _accessKey = Properties.Resources.accessKey;
+        private readonly string _secretKey = Properties.Resources.secretKey;
+        private readonly string _hashKey = Properties.Resources.hashKey;
 
-        private static string dynamoDBTableName = Properties.Resources.dynamoDBTableName;
-        private static string hashKey = Properties.Resources.hashKey;
+        private static readonly string DynamoDbTableName = Properties.Resources.dynamoDBTableName;
 
-        private AmazonDynamoDBClient client { get; set; }
-        private DynamoDBContext context { get; set; }
+        private AmazonDynamoDBClient Client { get; set; }
+        private DynamoDBContext Context { get; set; }
 
         /// <summary>
         /// Creates a new instance of PackDBHelper
         /// </summary>
         public PackDBHelper()
         {
-            var credentials = new BasicAWSCredentials(accessKey, secretKey);
-            client = new AmazonDynamoDBClient(credentials, RegionEndpoint.USEast1);
+            var credentials = new BasicAWSCredentials(_accessKey, _secretKey);
+            Client = new AmazonDynamoDBClient(credentials, RegionEndpoint.USEast1);
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace HearthPackTracker20.Model
         /// <returns>Task (void)</returns>
         public async Task VerifyTable()
         {
-            await this.VerifyTable(dynamoDBTableName);
+            await this.VerifyTable(DynamoDbTableName);
         }
 
         /// <summary>
@@ -48,13 +48,13 @@ namespace HearthPackTracker20.Model
         /// <returns>Task (void)</returns>
         public async Task VerifyTable(string tableName)
         {
-            var tableResponse = await client.ListTablesAsync();
+            var tableResponse = await Client.ListTablesAsync();
             if (!tableResponse.TableNames.Contains(tableName) && !CreateTable(tableName).Result)
             {
                 throw new Exception("Could not find or create table: " + tableName);
             }
 
-            context = new DynamoDBContext(client);
+            Context = new DynamoDBContext(Client);
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace HearthPackTracker20.Model
         /// <returns>Task (void)</returns>
         private async Task<bool> CreateTable(string tableName)
         {
-            await client.CreateTableAsync(new CreateTableRequest
+            await Client.CreateTableAsync(new CreateTableRequest
             {
                 TableName = tableName,
                 ProvisionedThroughput = new ProvisionedThroughput
@@ -76,13 +76,13 @@ namespace HearthPackTracker20.Model
                 {
                     new KeySchemaElement
                     {
-                        AttributeName = hashKey,
+                        AttributeName = _hashKey,
                         KeyType = KeyType.HASH
                     }
                 },
                 AttributeDefinitions = new List<AttributeDefinition>
                 {
-                    new AttributeDefinition {AttributeName = hashKey, AttributeType=ScalarAttributeType.S }
+                    new AttributeDefinition {AttributeName = _hashKey, AttributeType=ScalarAttributeType.S }
                 }
             });
 
@@ -92,7 +92,7 @@ namespace HearthPackTracker20.Model
             while (!isTableAvailable)
             {
                 Thread.Sleep(5000);
-                var tableStatus = await client.DescribeTableAsync(tableName);
+                var tableStatus = await Client.DescribeTableAsync(tableName);
                 isTableAvailable = tableStatus.Table.TableStatus == "ACTIVE";
                 waitCount++;
                 if (waitLimit == waitCount)
@@ -111,7 +111,7 @@ namespace HearthPackTracker20.Model
         /// <returns>Task (void)</returns>
         public async Task SavePack(Packs pack)
         {
-            await context.SaveAsync<Packs>(pack);
+            await Context.SaveAsync<Packs>(pack);
         }
 
         /// <summary>
@@ -122,11 +122,13 @@ namespace HearthPackTracker20.Model
         public async Task<Packs> GetPacks(string userId)
         {
             await VerifyTable();
-            List<ScanCondition> conditions = new List<ScanCondition>();
-            conditions.Add(new ScanCondition(Properties.Resources.hashKey, ScanOperator.Equal, userId));
-            var allDocs = await context.ScanAsync<Packs>(conditions).GetRemainingAsync();
+            List<ScanCondition> conditions = new List<ScanCondition>
+      {
+        new ScanCondition(_hashKey, ScanOperator.Equal, userId)
+      };
+            var allDocs = await Context.ScanAsync<Packs>(conditions).GetRemainingAsync();
 
-            if(allDocs.Count == 0)
+            if (allDocs.Count == 0)
             {
                 return this.CreateInitialPack(userId);
             }
@@ -158,7 +160,7 @@ namespace HearthPackTracker20.Model
                 }
             };
 
-            Task t = this.SavePack(user);
+            Task t = SavePack(user);
             t.Wait();
             return user;
         }

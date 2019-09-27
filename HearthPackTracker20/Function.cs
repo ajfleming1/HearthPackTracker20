@@ -14,7 +14,7 @@ using Models;
 namespace HearthPackTracker20
 {
     public class Function
-    {        
+    {
         /// <summary>
         /// Handles getting and setting a user's row in dynamodb
         /// </summary>
@@ -57,7 +57,7 @@ namespace HearthPackTracker20
                 {
                     userId = "unknownUserDump";
                 }
-                
+
                 if (input.GetRequestType() == typeof(LaunchRequest))
                 {
                     log.LogLine($"Default LaunchRequest made");
@@ -156,7 +156,7 @@ namespace HearthPackTracker20
         {
             var speech = new Alexa.NET.Response.PlainTextOutputSpeech()
             {
-                Text = "The pack types are Kobolds and Catacombs, Knights of the Frozen Throne, Journey to Un'goro, " +
+                Text = "The pack types are Saviors of Uldum, Rise of Shadows, Rastakhan's Rumble, The Boomsday Project, The Witchwood,  Kobolds and Catacombs, Knights of the Frozen Throne, Journey to Un'goro, " +
                        "Mean Streets of Gadgetzan, Whispers of the Old Gods, The Grand Tournament, Goblins Versus Gnomes and the Classic Set."
             };
 
@@ -205,10 +205,34 @@ namespace HearthPackTracker20
             var user = await hearthDBHelper.GetPacks(userId);
             var maxCount = 0;
             var maxPackType = "Classic";
-            if(maxCount < user.Pack.ClassicCount)
+            if (maxCount < user.Pack.ClassicCount)
             {
                 maxCount = user.Pack.ClassicCount;
                 maxPackType = "Classic";
+            }
+
+            if (maxCount < user.Pack.WitchwoodCount)
+            {
+                maxCount = user.Pack.WitchwoodCount;
+                maxPackType = "Witch wood";
+            }
+
+            if (maxCount < user.Pack.WitchwoodCount)
+            {
+                maxCount = user.Pack.WitchwoodCount;
+                maxPackType = "Witch wood";
+            }
+
+            if (maxCount < user.Pack.WitchwoodCount)
+            {
+                maxCount = user.Pack.WitchwoodCount;
+                maxPackType = "Witch wood";
+            }
+
+            if (maxCount < user.Pack.WitchwoodCount)
+            {
+                maxCount = user.Pack.WitchwoodCount;
+                maxPackType = "Witch wood";
             }
 
             if (maxCount < user.Pack.WitchwoodCount)
@@ -278,7 +302,7 @@ namespace HearthPackTracker20
         public async Task<SkillResponse> GetPackOpenedResponse(string userId, int packCounter, string packType, int legendaryCount = 0)
         {
             var user = await hearthDBHelper.GetPacks(userId);
-            if(legendaryCount > 0)
+            if (legendaryCount > 0)
             {
                 this.ResetPackCount(user, packType);
             }
@@ -304,14 +328,24 @@ namespace HearthPackTracker20
                 packs.ClassicCount += packCounter;
             }
 
-            if (PackTypeSynonyms.Witchwood.Contains(packType.ToLower()))
+            if (PackTypeSynonyms.SaviorsOfUldum.Contains(packType.ToLower()))
             {
-                packs.WitchwoodCount += packCounter;
+                packs.SaviorsOfUldumCount += packCounter;
             }
 
-            if (PackTypeSynonyms.Kobolds.Contains(packType.ToLower()))
+            if (PackTypeSynonyms.RiseOfShadows.Contains(packType.ToLower()))
             {
-                packs.KoboldsCount += packCounter;
+                packs.RiseOfShadowsCount += packCounter;
+            }
+
+            if (PackTypeSynonyms.RastakhansRumble.Contains(packType.ToLower()))
+            {
+                packs.RastakhansCount += packCounter;
+            }
+
+            if (PackTypeSynonyms.Boomsday.Contains(packType.ToLower()))
+            {
+                packs.BoomsdayCount += packCounter;
             }
 
             if (PackTypeSynonyms.UnGoro.Contains(packType.ToLower()))
@@ -389,6 +423,26 @@ namespace HearthPackTracker20
             if (PackTypeSynonyms.FrozenThrone.Contains(packType.ToLower()))
             {
                 packs.FrozenThroneCount = 0;
+            }
+
+            if (PackTypeSynonyms.Boomsday.Contains(packType.ToLower()))
+            {
+                packs.BoomsdayCount = 0;
+            }
+
+            if (PackTypeSynonyms.RastakhansRumble.Contains(packType.ToLower()))
+            {
+                packs.RastakhansCount = 0;
+            }
+
+            if (PackTypeSynonyms.RiseOfShadows.Contains(packType.ToLower()))
+            {
+                packs.RiseOfShadowsCount = 0;
+            }
+
+            if (PackTypeSynonyms.SaviorsOfUldum.Contains(packType.ToLower()))
+            {
+                packs.SaviorsOfUldumCount = 0;
             }
 
             if (PackTypeSynonyms.OldGods.Contains(packType.ToLower()))

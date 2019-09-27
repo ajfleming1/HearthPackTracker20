@@ -22,10 +22,42 @@ namespace Models
         public int OldGodsCount { get; set; }
         public int TGTCount { get; set; }
         public int UnGoroCount { get; set; }
+        public int BoomsdayCount { get; set; }
+        public int RastakhansCount { get; set; }
+        public int RiseOfShadowsCount { get; set; }
+        public int SaviorsOfUldumCount { get; set; }
     }
 
     public static class PackTypeSynonyms
     {
+        public static List<string> SaviorsOfUldum = new List<string>
+    {
+      "Saviors of Uldum",
+      "Uldum"
+    };
+
+        public static List<string> RiseOfShadows = new List<string>
+    {
+      "Rise of Shadows",
+      "Shadows",
+      "Rise"
+    };
+
+        public static List<string> RastakhansRumble = new List<string>
+    {
+      "Rastakhan's Rumble",
+      "Rastakhan",
+      "Rumble"
+    };
+
+        public static List<string> Boomsday = new List<string>
+      {
+        "Boomsday",
+        "The Boomsday Project",
+        "Boomsday Project"
+      };
+
+
         public static List<string> Kobolds = new List<string>
         {
             "kobolds",
